@@ -1,12 +1,18 @@
-const authService = require('../services/auth.service');
+const authService = require("../services/auth.service");
+const { successResponse, errorResponse } = require("../utils/response");
 
 const register = async (req, res) => {
   try {
     const savedUser = await authService.registerUser(req.body);
-    res.status(201).json({ message: 'User registered successfully', user: savedUser });
+    return successResponse(
+      res,
+      { user: savedUser },
+      "User registered successfully",
+      201
+    );
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Registration failed' });
+    return errorResponse(res, "Registration failed");
   }
 };
 
