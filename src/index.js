@@ -1,7 +1,7 @@
-require('dotenv').config();
-const express = require('express');
-const connectDB = require('./config');
-const userRoutes = require('./routes/user.route');
+require("dotenv").config();
+const express = require("express");
+const connectDB = require("./config");
+const userRoutes = require("./routes/user.route");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,7 +13,9 @@ connectDB();
 app.use(express.json());
 
 // Routes
-app.use('/api/users', userRoutes);
+app.use("/api/users", (req, res) => {
+  res.send("Hello World");
+});
 
 // Server start
 app.listen(PORT, () => {
