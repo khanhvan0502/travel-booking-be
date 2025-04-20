@@ -1,5 +1,6 @@
 const authService = require("../services/auth.service");
 const { successResponse, errorResponse } = require("../utils/response");
+const TokenBlacklist = require("../models/token.model");
 
 const register = async (req, res) => {
   try {
@@ -25,7 +26,7 @@ const register = async (req, res) => {
     );
   } catch (err) {
     console.error(err);
-    return errorResponse(res, "Registration failed");
+    return errorResponse(res, {}, "Registration failed");
   }
 };
 
@@ -48,4 +49,28 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const logout = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return errorResponse(res, {}, "Token is requited", 400);
+    }
+
+    const decoded = require("jsonwebtoken").decode(token);
+    if (!decoded || !decoded.exp) {
+      return errorResponse(res, {}, "Invalid token", 400);
+    }
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    await TokenBlacklist.create({
+      token,
+      expiresAt,
+    });
+
+    return successResponse(res, {}, "Logout successful");
+  } catch (error) {
+    return errorResponse(res, {}, "Internal server error");
+  }
+};
+
+module.exports = { register, login, logout };
