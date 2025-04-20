@@ -18,7 +18,7 @@ app.use("/api/users", (req, res) => {
   res.send("Hello World");
 });
 
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 
 // Server start
 app.listen(PORT, () => {
