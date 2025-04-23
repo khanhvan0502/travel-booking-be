@@ -18,11 +18,18 @@ const register = async (req, res) => {
     const savedUser = await authService.registerUser(req.body);
     const { password: _, ...userWithoutPassword } = savedUser.toObject();
 
+    const result = await authService.loginUser(
+      userWithoutPassword.email,
+      password
+    );
+    const { user, accessToken, refreshToken } = result;
+
+    await authService.setCookieCustom(res, refreshToken);
+
     return successResponse(
       res,
-      { user: userWithoutPassword },
-      "User registered successfully",
-      201
+      { user, token: accessToken },
+      "User registered successfully"
     );
   } catch (err) {
     console.error(err);
@@ -37,15 +44,39 @@ const login = async (req, res) => {
       return errorResponse(res, {}, "Email and password are required", 400);
     }
 
-    const user = await authService.loginUser(email, password);
-
-    if (!user) {
+    const result = await authService.loginUser(email, password);
+    if (!result) {
       return errorResponse(res, {}, "Invalid email or password", 400);
     }
-    return successResponse(res, user, "Login successful");
+
+    const { user, accessToken, refreshToken } = result;
+
+    await authService.setCookieCustom(res, refreshToken);
+
+    return successResponse(
+      res,
+      { user, token: accessToken },
+      "Login successful"
+    );
   } catch (error) {
-    console.error(err);
+    console.error(error);
     return errorResponse(res, {}, "Login failed");
+  }
+};
+
+const refreshToken = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken)
+    return res
+      .status(401)
+      .json({ status: false, message: "No token provided" });
+
+  try {
+    const newAccessToken = await authService.refreshToken(refreshToken);
+    return successResponse(res, { token: newAccessToken }, "Token refreshed");
+  } catch (err) {
+    console.log(err);
+    return errorResponse(res, {}, "Invalid refresh token", 403);
   }
 };
 
@@ -73,4 +104,4 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, login, logout };
+module.exports = { register, login, refreshToken, logout };
