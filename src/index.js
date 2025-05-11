@@ -1,11 +1,14 @@
 require("dotenv").config();
+const cors = require("cors");
 const express = require("express");
 const connectDB = require("./config");
 const userRoutes = require("./routes/user.route");
 const authRoutes = require("./routes/auth.route");
+const cookieParser = require("cookie-parser");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(cors());
+app.use(cookieParser());
 
 // Kết nối MongoDB
 connectDB();
@@ -20,6 +23,7 @@ app.use("/api/users", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 
+const PORT = process.env.PORT || 3000;
 // Server start
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
